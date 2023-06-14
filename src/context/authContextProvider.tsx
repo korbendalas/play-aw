@@ -8,6 +8,7 @@ export interface AuthContextValues {
   login: (props: LoginProps) => void;
   logout: () => void;
   register: (props: RegisterProps) => void;
+  resetPassword: (props: ResetPasswordProps) => void;
 }
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -21,6 +22,11 @@ export interface RegisterProps {
 export interface LoginProps {
   email: string;
   password: string;
+}
+export interface ResetPasswordProps {
+  password: string;
+  confirmPassword: string;
+  token: string;
 }
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState(null);
@@ -41,7 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     lastName,
   }: RegisterProps) => {
     try {
-      const res = await axios.post('/api/login', {
+      const res = await axios.post('/api/register', {
         email,
         password,
         firstName,
@@ -63,8 +69,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const resetPassword = async ({
+    password,
+    confirmPassword,
+    token,
+  }: ResetPasswordProps) => {
+    try {
+      await axios.post('/api/reset-password', {
+        password,
+        confirmPassword,
+        token,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, register, resetPassword }}
+    >
       {children}
     </AuthContext.Provider>
   );
