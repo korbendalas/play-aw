@@ -1,8 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../hooks';
 import { Button } from './button';
+import { useNavigate } from 'react-router-dom';
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
   const {
     register: registerField,
     handleSubmit,
@@ -13,7 +15,11 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: any) => {
     console.log(data);
-    await login(data);
+    const res = await login(data);
+    if (res.success) {
+      console.log('RES', res);
+      navigate('/');
+    }
   };
 
   return (

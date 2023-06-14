@@ -7,6 +7,10 @@ export const commonRoutes = [
     element: <HomePage />,
   },
   {
+    path: '*',
+    element: <HomePage />,
+  },
+  {
     path: '/reset-password',
     element: <ResetPasswordPage />,
   },

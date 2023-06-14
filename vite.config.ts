@@ -1,17 +1,24 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import {defineConfig} from 'vite'
+import reactRefresh from '@vitejs/plugin-react-refresh';
+
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    fs: {
-      strict: false,
+export default ({mode}) =>{
+  return defineConfig({
+    plugins: [reactRefresh()],
+    define: {
+      'process.env.NODE_ENV': `"${mode}"`,
     },
-    port: 3000,
-  },
 
-  preview: {
-    port: 3000,
-  },
-})
+    server: {
+      fs: {
+        strict: false,
+      },
+      port: 3000,
+    },
+
+    preview: {
+      port: 3000,
+    },
+  })
+}

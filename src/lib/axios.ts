@@ -1,8 +1,9 @@
-import Axios, { AxiosRequestConfig } from 'axios';
+import Axios from 'axios';
 import { API_URL } from '../config';
 import { storage } from '../utils/storage';
 
-function authRequestInterceptor(config: AxiosRequestConfig) {
+function authRequestInterceptor(config: any) {
+  console.log('API_URL ee', API_URL);
   const token = storage.getToken();
   if (token) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -16,18 +17,16 @@ function authRequestInterceptor(config: AxiosRequestConfig) {
 }
 
 export const axios = Axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL as string,
 });
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 axios.interceptors.request.use(authRequestInterceptor);
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 axios.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response;
   },
   async (error) => {
     const { config, response } = error;

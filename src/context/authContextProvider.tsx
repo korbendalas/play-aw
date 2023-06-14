@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { AuthContext } from './authContext';
 import { storage } from '../utils/storage.ts';
+import { axios } from '../lib/axios';
 
 export interface AuthContextValues {
   user: any;
-  login: (props: LoginProps) => void;
+  login: (props: LoginProps) => any;
+  isLoggedIn: () => boolean;
   logout: () => void;
   register: (props: RegisterProps) => void;
   resetPassword: (props: ResetPasswordProps) => void;
@@ -33,8 +34,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async ({ email, password }: LoginProps) => {
     try {
-      const res = await axios.post('/api/login', { email, password });
-      setUser(res.data.user);
+      const { data } = await axios.post('auth/login', { email, password });
+      if (data) {
+        setUser(data?.user);
+        storage.setToken(data?.token);
+        storage.setRefreshToken(data?.refreshToken);
+      }
+      return data;
     } catch (err) {
       console.log(err);
     }
@@ -61,9 +67,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/logout');
       setUser(null);
       storage.clearTokens();
+      await axios.post('/api/logout');
     } catch (err) {
       console.log(err);
     }
@@ -87,7 +93,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, register, resetPassword }}
+      value={{
+        user,
+        login,
+        logout,
+        register,
+        resetPassword,
+        isLoggedIn: () => !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>
