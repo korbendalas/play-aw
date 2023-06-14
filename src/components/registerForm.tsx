@@ -1,48 +1,48 @@
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../hooks';
 import { Button } from './button.tsx';
+import { useNavigate } from 'react-router-dom';
 
 export const RegisterForm = () => {
   const {
     register: registerField,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm();
 
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const onSubmit = async (data: any) => {
-    console.log(data);
-    await register(data);
+    const res = await register(data);
+    if (res) console.log('res', res);
+    if (res?.status === 201) {
+      navigate('/login');
+    } else if (res?.status > 201) {
+      setError('root.serverError', {
+        type: res?.response?.message || res?.data?.message,
+      });
+    }
   };
 
   return (
     <div className="mt-5">
       <form onSubmit={handleSubmit(onSubmit)}>
+        {errors.root?.serverError.type && (
+          <p className="text-red-500">{errors.root?.serverError.type}</p>
+        )}
         <div className="flex items-start flex-col mt-3">
-          <label>First Name</label>
+          <label>Full Name</label>
           <input
             type="text"
             className="border-0 mt-2 px-3 py-3 placeholder-blueGray-300 text-blueGray-600  rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-            {...registerField('firstName', {
+            {...registerField('fullName', {
               required: true,
             })}
           />
-          {errors.firstName && errors.firstName.type === 'required' && (
-            <p className="text-red-500">First name is required.</p>
-          )}
-        </div>
-        <div className="flex items-start flex-col mt-3">
-          <label>Last Name</label>
-          <input
-            type="text"
-            className="border-0 mt-2 px-3 py-3 placeholder-blueGray-300 text-blueGray-600  rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-            {...registerField('lastName', {
-              required: true,
-            })}
-          />
-          {errors.lastName && errors.lastName.type === 'required' && (
-            <p className="text-red-500">Last name is required.</p>
+          {errors.fullName && errors.fullName.type === 'required' && (
+            <p className="text-red-500">Full Name name is required.</p>
           )}
         </div>
 

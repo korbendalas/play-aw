@@ -1,9 +1,7 @@
 import Axios from 'axios';
-import { API_URL } from '../config';
 import { storage } from '../utils/storage';
 
 function authRequestInterceptor(config: any) {
-  console.log('API_URL ee', API_URL);
   const token = storage.getToken();
   if (token) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -22,52 +20,16 @@ export const axios = Axios.create({
 
 axios.interceptors.request.use(authRequestInterceptor);
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
 axios.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
     const { config, response } = error;
+    console.log('Error', config, response);
 
-    if (response?.status === 401) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        console.log('REFRESHING TOKEN');
-        // Your refresh token API call using Axios
-        axios
-          .post('auth/refresh', {
-            refreshToken: storage.getRefreshToken(),
-          })
-
-          .then((res) => {
-            console.log('RES', res);
-            const newToken = res.data.token;
-            storage.setToken(newToken);
-            storage.setRefreshToken(res.data.refreshToken);
-
-            refreshSubscribers.forEach((subscriber) => subscriber(newToken));
-            refreshSubscribers = [];
-          })
-          .catch(() => {
-            // Handle refresh token failure, e.g., redirect to login
-            storage.clearTokens();
-          })
-          .finally(() => {
-            isRefreshing = false;
-          });
-      }
-
-      return new Promise((resolve) => {
-        refreshSubscribers.push((token) => {
-          config.headers.Authorization = `Bearer ${token}`;
-          resolve(axios(config));
-        });
-      });
+    if (response.status === 401) {
+      storage.clearTokens();
     }
-
-    return Promise.reject(error);
   }
 );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AuthContext } from './authContext';
 import { storage } from '../utils/storage.ts';
 import { axios } from '../lib/axios';
@@ -6,10 +6,10 @@ import { axios } from '../lib/axios';
 export interface AuthContextValues {
   user: any;
   login: (props: LoginProps) => any;
-  isLoggedIn: () => boolean;
   logout: () => void;
-  register: (props: RegisterProps) => void;
-  resetPassword: (props: ResetPasswordProps) => void;
+  register: (props: RegisterProps) => any;
+  resetPassword: (props: ResetPasswordProps) => any;
+  requestResetPassword: ({ email }: { email: string }) => any;
 }
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -17,49 +17,54 @@ export interface AuthProviderProps {
 export interface RegisterProps {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 export interface LoginProps {
   email: string;
   password: string;
 }
 export interface ResetPasswordProps {
+  email: string;
   password: string;
-  confirmPassword: string;
   token: string;
 }
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  async function loadUser() {
+    if (storage?.getToken()) {
+      const { data } = await axios.get('user/me');
+      setUser(data);
+      return data;
+    }
+    return null;
+  }
   const login = async ({ email, password }: LoginProps) => {
     try {
-      const { data } = await axios.post('auth/login', { email, password });
-      if (data) {
-        setUser(data?.user);
-        storage.setToken(data?.token);
-        storage.setRefreshToken(data?.refreshToken);
+      const res = await axios.post('auth/login', { email, password });
+      if (res.data) {
+        setUser(res?.data?.user);
+        storage.setToken(res?.data?.accessToken);
+        storage.setRefreshToken(res?.data?.refreshToken);
       }
-      return data;
+      return res;
     } catch (err) {
       console.log(err);
     }
   };
 
-  const register = async ({
-    email,
-    password,
-    firstName,
-    lastName,
-  }: RegisterProps) => {
+  const register = async ({ email, password, fullName }: RegisterProps) => {
     try {
-      const res = await axios.post('/api/register', {
+      const res = await axios.post('user', {
         email,
         password,
-        firstName,
-        lastName,
+        fullName,
       });
-      setUser(res.data.user);
+      return res;
     } catch (err) {
       console.log(err);
     }
@@ -69,23 +74,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setUser(null);
       storage.clearTokens();
-      await axios.post('/api/logout');
     } catch (err) {
       console.log(err);
     }
   };
 
-  const resetPassword = async ({
-    password,
-    confirmPassword,
-    token,
-  }: ResetPasswordProps) => {
+  const resetPassword = async ({ password, token, email }: any) => {
     try {
-      await axios.post('/api/reset-password', {
+      const res = await axios.post(`auth/reset-password/${token}`, {
         password,
-        confirmPassword,
-        token,
+        email,
       });
+      return res;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const requestResetPassword = async ({ email }: { email: string }) => {
+    try {
+      const data = await axios.post('auth/reset-password', { email });
+      console.log('DATA', data);
+      return data;
     } catch (err) {
       console.log(err);
     }
@@ -99,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         logout,
         register,
         resetPassword,
-        isLoggedIn: () => !!user,
+        requestResetPassword,
       }}
     >
       {children}

@@ -7,11 +7,10 @@ export const HomePage = () => {
 
   return (
     <div>
-      <h1 className="my-5">Home Page</h1>
+      <h1 className="my-5 w-[300px]">Home Page</h1>
       <div className="flex items-center justify-around">
         {!user ? (
           <>
-            {' '}
             <Link to="/login">
               <Button title="Login" />
             </Link>
