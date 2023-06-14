@@ -1,8 +1,8 @@
-import { HomePage } from '../pages';
+import { LoginPage } from '../pages';
 
-export const commonRoutes = [
-    {
-        path: '/',
-        element: <HomePage />,
-    },
+export const publicRoutes = [
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
 ];

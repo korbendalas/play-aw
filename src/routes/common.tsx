@@ -1,9 +1,8 @@
-import {MePage} from "../pages";
+import { HomePage } from '../pages';
 
-export const protectedRoutes = [
-    {
-        path: '/me',
-        element: <MePage />,
-
-    },
+export const commonRoutes = [
+  {
+    path: '/',
+    element: <HomePage />,
+  },
 ];
